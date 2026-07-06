@@ -9,7 +9,7 @@ const connectDB = require("./config/db");
 const app = express();
 
 connectDB();
-
+   
 app.use(
   cors({
     origin: [
