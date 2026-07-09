@@ -1,14 +1,24 @@
-const expess = require("express");
-const router = expess.Router();
-const blogController = require("../controllers/blogController");
+const express = require("express");
+const router = express.Router();
 
-const { getAllBlogPosts, getBlogPostById, createBlogPost, updateBlogPost, deleteBlogPost } = blogController;
+const upload = require("../middleware/upload");
 
-// Define routes for blog posts
+const {
+  getAllBlogPosts,
+  getBlogPostById,
+  createBlogPost,
+  updateBlogPost,
+  deleteBlogPost,
+} = require("../controllers/blogController");
+
 router.get("/", getAllBlogPosts);
+
 router.get("/:id", getBlogPostById);
-router.post("/", createBlogPost);
-router.put("/:id", updateBlogPost);
-router.delete("/:id", deleteBlogPost);  
+
+router.post("/", upload.single("image"), createBlogPost);
+
+router.put("/:id", upload.single("image"), updateBlogPost);
+
+router.delete("/:id", deleteBlogPost);
 
 module.exports = router;

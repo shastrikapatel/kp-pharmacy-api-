@@ -1,71 +1,130 @@
 const Blog = require("../models/blog");
 
-// Get all blog posts   
+// Get All Blogs
+
 const getAllBlogPosts = async (req, res) => {
-    try {
-        const blogPosts = await Blog.find();
-        res.json(blogPosts);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+  try {
+    const blogs = await Blog.find().sort({ createdAt: -1 });
+
+    res.json(blogs);
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
 };
 
-// Get a single blog post by ID
+// Get Blog By Id
+
 const getBlogPostById = async (req, res) => {
-    try {
-        const blogPost = await Blog.findById(req.params.id);
-        if (!blogPost) {
-            return res.status(404).json({ message: "Blog post not found" });
-        }
-        res.json(blogPost);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+  try {
+    const blog = await Blog.findById(req.params.id);
+
+    if (!blog) {
+      return res.status(404).json({
+        message: "Blog not found",
+      });
     }
+
+    res.json(blog);
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
 };
 
-// Create a new blog post
+// Create Blog
+
 const createBlogPost = async (req, res) => {
-    const { title, image, category, date, readTime } = req.body;
-    const newBlogPost = new Blog({ title, image, category, date, readTime });
-    try {
-        const savedBlogPost = await newBlogPost.save();
-        res.status(201).json(savedBlogPost);
-    } catch (error) {
-        res.status(400).json({ message: error.message });
-    }
+  try {
+    const image = req.file
+      ? `/uploads/${req.file.filename}`
+      : "";
+
+    const blog = new Blog({
+      title: req.body.title,
+      slug: req.body.slug,
+      description: req.body.description,
+      image,
+      category: req.body.category,
+      author: req.body.author,
+      date: req.body.date,
+      readTime: req.body.readTime,
+      status: req.body.status,
+    });
+
+    const saved = await blog.save();
+
+    res.status(201).json(saved);
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
 };
 
-// Update an existing blog post by ID
+// Update Blog
+
 const updateBlogPost = async (req, res) => {
-    try {
-        const updatedBlogPost = await Blog.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!updatedBlogPost) {
-            return res.status(404).json({ message: "Blog post not found" });
-        }
-        res.json(updatedBlogPost);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+  try {
+    const blog = await Blog.findById(req.params.id);
+
+    if (!blog) {
+      return res.status(404).json({
+        message: "Blog not found",
+      });
     }
+
+    blog.title = req.body.title;
+    blog.slug = req.body.slug;
+    blog.description = req.body.description;
+    blog.category = req.body.category;
+    blog.author = req.body.author;
+    blog.date = req.body.date;
+    blog.readTime = req.body.readTime;
+    blog.status = req.body.status;
+
+    if (req.file) {
+      blog.image = `/uploads/${req.file.filename}`;
+    }
+
+    const updated = await blog.save();
+
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
 };
 
-// Delete a blog post by ID
+// Delete Blog
+
 const deleteBlogPost = async (req, res) => {
-    try {
-        const deletedBlogPost = await Blog.findByIdAndDelete(req.params.id);
-        if (!deletedBlogPost) {
-            return res.status(404).json({ message: "Blog post not found" });
-        }
-        res.json({ message: "Blog post deleted successfully" });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+  try {
+    const deleted = await Blog.findByIdAndDelete(req.params.id);
+
+    if (!deleted) {
+      return res.status(404).json({
+        message: "Blog not found",
+      });
     }
+
+    res.json({
+      message: "Blog deleted successfully",
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
 };
 
-// Export the controller functions
 module.exports = {
-    getAllBlogPosts,
-    getBlogPostById,
-    createBlogPost,
-    updateBlogPost,
-    deleteBlogPost
+  getAllBlogPosts,
+  getBlogPostById,
+  createBlogPost,
+  updateBlogPost,
+  deleteBlogPost,
 };
