@@ -5,7 +5,6 @@ const upload = require("../middleware/upload");
 const blogController = require("../controllers/blogController");
 
 router.get("/", blogController.getAllBlogPosts);
-
 router.get("/:id", blogController.getBlogPostById);
 
 router.post(

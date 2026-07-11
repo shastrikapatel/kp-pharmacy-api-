@@ -1,21 +1,19 @@
 const Blog = require("../models/blog");
+// const Blog = require("../models/blog");
+const cloudinary = require("../config/cloudinary");
 
-// Get All Blogs
-exports.getAllBlogPosts = async (req, res) => {
+// Get all blogs
+const getAllBlogPosts = async (req, res) => {
   try {
     const blogs = await Blog.find().sort({ createdAt: -1 });
-
-    res.status(200).json(blogs);
+    res.json(blogs);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      message: err.message,
-    });
+    res.status(500).json({ message: err.message });
   }
 };
 
-// Get Single Blog
-exports.getBlogPostById = async (req, res) => {
+// Get single blog
+const getBlogPostById = async (req, res) => {
   try {
     const blog = await Blog.findById(req.params.id);
 
@@ -25,18 +23,29 @@ exports.getBlogPostById = async (req, res) => {
       });
     }
 
-    res.status(200).json(blog);
+    res.json(blog);
   } catch (err) {
-    console.error(err);
     res.status(500).json({
       message: err.message,
     });
   }
 };
 
-// Create Blog
-exports.createBlogPost = async (req, res) => {
+// Create blog
+const createBlogPost = async (req, res) => {
   try {
+    let imageUrl = "";
+
+    if (req.file) {
+      const base64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+
+      const uploaded = await cloudinary.uploader.upload(base64, {
+        folder: "kp-pharmacy/blogs",
+      });
+
+      imageUrl = uploaded.secure_url;
+    }
+
     const blog = new Blog({
       title: req.body.title,
       slug: req.body.slug,
@@ -46,12 +55,13 @@ exports.createBlogPost = async (req, res) => {
       date: req.body.date,
       readTime: req.body.readTime,
       status: req.body.status,
-      image: req.file ? req.file.path : "",
+      image: imageUrl,
     });
 
     const savedBlog = await blog.save();
 
     res.status(201).json(savedBlog);
+
   } catch (err) {
     console.error(err);
 
@@ -61,8 +71,8 @@ exports.createBlogPost = async (req, res) => {
   }
 };
 
-// Update Blog
-exports.updateBlogPost = async (req, res) => {
+// Update blog
+const updateBlogPost = async (req, res) => {
   try {
     const blog = await Blog.findById(req.params.id);
 
@@ -72,22 +82,29 @@ exports.updateBlogPost = async (req, res) => {
       });
     }
 
-    blog.title = req.body.title || blog.title;
-    blog.slug = req.body.slug || blog.slug;
-    blog.description = req.body.description || blog.description;
-    blog.category = req.body.category || blog.category;
-    blog.author = req.body.author || blog.author;
-    blog.date = req.body.date || blog.date;
-    blog.readTime = req.body.readTime || blog.readTime;
-    blog.status = req.body.status || blog.status;
-
     if (req.file) {
-      blog.image = req.file.path;
+      const base64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+
+      const uploaded = await cloudinary.uploader.upload(base64, {
+        folder: "kp-pharmacy/blogs",
+      });
+
+      blog.image = uploaded.secure_url;
     }
 
-    const updatedBlog = await blog.save();
+    blog.title = req.body.title;
+    blog.slug = req.body.slug;
+    blog.description = req.body.description;
+    blog.category = req.body.category;
+    blog.author = req.body.author;
+    blog.date = req.body.date;
+    blog.readTime = req.body.readTime;
+    blog.status = req.body.status;
 
-    res.status(200).json(updatedBlog);
+    const updated = await blog.save();
+
+    res.json(updated);
+
   } catch (err) {
     console.error(err);
 
@@ -97,8 +114,8 @@ exports.updateBlogPost = async (req, res) => {
   }
 };
 
-// Delete Blog
-exports.deleteBlogPost = async (req, res) => {
+// Delete blog
+const deleteBlogPost = async (req, res) => {
   try {
     const blog = await Blog.findByIdAndDelete(req.params.id);
 
@@ -108,14 +125,20 @@ exports.deleteBlogPost = async (req, res) => {
       });
     }
 
-    res.status(200).json({
-      message: "Blog deleted successfully",
+    res.json({
+      message: "Deleted Successfully",
     });
   } catch (err) {
-    console.error(err);
-
     res.status(500).json({
       message: err.message,
     });
   }
+};
+
+module.exports = {
+  getAllBlogPosts,
+  getBlogPostById,
+  createBlogPost,
+  updateBlogPost,
+  deleteBlogPost,
 };
