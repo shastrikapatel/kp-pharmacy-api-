@@ -1,17 +1,21 @@
 const Blog = require("../models/blog");
 
-// Get all blogs
-const getAllBlogPosts = async (req, res) => {
+// Get All Blogs
+exports.getAllBlogPosts = async (req, res) => {
   try {
     const blogs = await Blog.find().sort({ createdAt: -1 });
-    res.json(blogs);
+
+    res.status(200).json(blogs);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({
+      message: err.message,
+    });
   }
 };
 
-// Get single blog
-const getBlogPostById = async (req, res) => {
+// Get Single Blog
+exports.getBlogPostById = async (req, res) => {
   try {
     const blog = await Blog.findById(req.params.id);
 
@@ -21,16 +25,17 @@ const getBlogPostById = async (req, res) => {
       });
     }
 
-    res.json(blog);
+    res.status(200).json(blog);
   } catch (err) {
+    console.error(err);
     res.status(500).json({
       message: err.message,
     });
   }
 };
 
-// Create blog
-const createBlogPost = async (req, res) => {
+// Create Blog
+exports.createBlogPost = async (req, res) => {
   try {
     const blog = new Blog({
       title: req.body.title,
@@ -41,42 +46,25 @@ const createBlogPost = async (req, res) => {
       date: req.body.date,
       readTime: req.body.readTime,
       status: req.body.status,
-
-      // Cloudinary Image URL
       image: req.file ? req.file.path : "",
     });
 
     const savedBlog = await blog.save();
 
     res.status(201).json(savedBlog);
-  } catch (error) {
+  } catch (err) {
+    console.error(err);
+
     res.status(500).json({
-      message: error.message,
+      message: err.message,
     });
   }
 };
 
-// Update blog
-const updateBlogPost = async (req, res) => {
+// Update Blog
+exports.updateBlogPost = async (req, res) => {
   try {
-    const updateData = {
-      title: req.body.title,
-      category: req.body.category,
-      date: req.body.date,
-      readTime: req.body.readTime,
-    };
-
-    if (req.file) {
-      updateData.image = req.file.path;
-    }
-
-    const blog = await Blog.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      {
-        new: true,
-      }
-    );
+    const blog = await Blog.findById(req.params.id);
 
     if (!blog) {
       return res.status(404).json({
@@ -84,16 +72,33 @@ const updateBlogPost = async (req, res) => {
       });
     }
 
-    res.json(blog);
+    blog.title = req.body.title || blog.title;
+    blog.slug = req.body.slug || blog.slug;
+    blog.description = req.body.description || blog.description;
+    blog.category = req.body.category || blog.category;
+    blog.author = req.body.author || blog.author;
+    blog.date = req.body.date || blog.date;
+    blog.readTime = req.body.readTime || blog.readTime;
+    blog.status = req.body.status || blog.status;
+
+    if (req.file) {
+      blog.image = req.file.path;
+    }
+
+    const updatedBlog = await blog.save();
+
+    res.status(200).json(updatedBlog);
   } catch (err) {
+    console.error(err);
+
     res.status(500).json({
       message: err.message,
     });
   }
 };
 
-// Delete blog
-const deleteBlogPost = async (req, res) => {
+// Delete Blog
+exports.deleteBlogPost = async (req, res) => {
   try {
     const blog = await Blog.findByIdAndDelete(req.params.id);
 
@@ -103,20 +108,14 @@ const deleteBlogPost = async (req, res) => {
       });
     }
 
-    res.json({
-      message: "Deleted Successfully",
+    res.status(200).json({
+      message: "Blog deleted successfully",
     });
   } catch (err) {
+    console.error(err);
+
     res.status(500).json({
       message: err.message,
     });
   }
-};
-
-module.exports = {
-  getAllBlogPosts,
-  getBlogPostById,
-  createBlogPost,
-  updateBlogPost,
-  deleteBlogPost,
 };
