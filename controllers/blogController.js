@@ -1,130 +1,124 @@
 const Blog = require("../models/blog");
 
-// Get All Blogs
-
+// Get all blogs
 const getAllBlogPosts = async (req, res) => {
-  try {
-    const blogs = await Blog.find().sort({ createdAt: -1 });
-
-    res.json(blogs);
-  } catch (err) {
-    res.status(500).json({
-      message: err.message,
-    });
-  }
+    try {
+        const blogs = await Blog.find().sort({ createdAt: -1 });
+        res.json(blogs);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
 };
 
-// Get Blog By Id
-
+// Get single blog
 const getBlogPostById = async (req, res) => {
-  try {
-    const blog = await Blog.findById(req.params.id);
+    try {
+        const blog = await Blog.findById(req.params.id);
 
-    if (!blog) {
-      return res.status(404).json({
-        message: "Blog not found",
-      });
+        if (!blog) {
+            return res.status(404).json({
+                message: "Blog not found",
+            });
+        }
+
+        res.json(blog);
+    } catch (err) {
+        res.status(500).json({
+            message: err.message,
+        });
     }
-
-    res.json(blog);
-  } catch (err) {
-    res.status(500).json({
-      message: err.message,
-    });
-  }
 };
 
-// Create Blog
-
+// Create blog
 const createBlogPost = async (req, res) => {
-  try {
-    const image = req.file
-      ? `/uploads/${req.file.filename}`
-      : "";
+    try {
+        const blog = new Blog({
+            title: req.body.title,
+            slug: req.body.slug,
+            description: req.body.description,
+            category: req.body.category,
+            author: req.body.author,
+            date: req.body.date,
+            readTime: req.body.readTime,
+            status: req.body.status,
 
-    const blog = new Blog({
-      title: req.body.title,
-      slug: req.body.slug,
-      description: req.body.description,
-      image,
-      category: req.body.category,
-      author: req.body.author,
-      date: req.body.date,
-      readTime: req.body.readTime,
-      status: req.body.status,
-    });
+            // Cloudinary Image URL
+            image: req.file ? req.file.path : "",
+        });
 
-    const saved = await blog.save();
+        const savedBlog = await blog.save();
 
-    res.status(201).json(saved);
-  } catch (err) {
-    res.status(500).json({
-      message: err.message,
-    });
-  }
+        res.status(201).json(savedBlog);
+    } catch (error) {
+        res.status(500).json({
+            message: error.message,
+        });
+    }
 };
 
-// Update Blog
-
+// Update blog
 const updateBlogPost = async (req, res) => {
-  try {
-    const blog = await Blog.findById(req.params.id);
+    try {
+        const updateData = {
+            title: req.body.title,
+            slug: req.body.slug,
+            description: req.body.description,
+            category: req.body.category,
+            author: req.body.author,
+            date: req.body.date,
+            readTime: req.body.readTime,
+            status: req.body.status,
+        };
 
-    if (!blog) {
-      return res.status(404).json({
-        message: "Blog not found",
-      });
+        if (req.file) {
+            updateData.image = req.file.path;
+        }
+
+        const blog = await Blog.findByIdAndUpdate(
+            req.params.id,
+            updateData,
+            { new: true }
+        );
+
+        if (!blog) {
+            return res.status(404).json({
+                message: "Blog not found",
+            });
+        }
+
+        res.json(blog);
+    } catch (error) {
+        res.status(500).json({
+            message: error.message,
+        });
     }
-
-    blog.title = req.body.title;
-    blog.slug = req.body.slug;
-    blog.description = req.body.description;
-    blog.category = req.body.category;
-    blog.author = req.body.author;
-    blog.date = req.body.date;
-    blog.readTime = req.body.readTime;
-    blog.status = req.body.status;
-
-    if (req.file) {
-      blog.image = `/uploads/${req.file.filename}`;
-    }
-
-    const updated = await blog.save();
-
-    res.json(updated);
-  } catch (err) {
-    res.status(500).json({
-      message: err.message,
-    });
-  }
 };
 
-// Delete Blog
-
+// Delete blog
 const deleteBlogPost = async (req, res) => {
-  try {
-    const deleted = await Blog.findByIdAndDelete(req.params.id);
+    try {
+        const blog = await Blog.findByIdAndDelete(req.params.id);
 
-    if (!deleted) {
-      return res.status(404).json({
-        message: "Blog not found",
-      });
+        if (!blog) {
+            return res.status(404).json({
+                message: "Blog not found",
+            });
+        }
+
+        res.json({
+            message: "Deleted Successfully",
+        });
+    } catch (err) {
+        res.status(500).json({
+            message: err.message,
+        });
     }
-
-    res.json({
-      message: "Blog deleted successfully",
-    });
-  } catch (err) {
-    res.status(500).json({
-      message: err.message,
-    });
-  }
 };
 
 module.exports = {
-  getAllBlogPosts,
-  getBlogPostById,
-  createBlogPost,
-  updateBlogPost,
-  deleteBlogPost,
+    getAllBlogPosts,
+    getBlogPostById,
+    createBlogPost,
+    updateBlogPost,
+    deleteBlogPost,
 };

@@ -4,11 +4,11 @@ const router = express.Router();
 const upload = require("../middleware/upload");
 
 const {
-  getAllBlogPosts,
-  getBlogPostById,
-  createBlogPost,
-  updateBlogPost,
-  deleteBlogPost,
+    getAllBlogPosts,
+    getBlogPostById,
+    createBlogPost,
+    updateBlogPost,
+    deleteBlogPost,
 } = require("../controllers/blogController");
 
 router.get("/", getAllBlogPosts);
