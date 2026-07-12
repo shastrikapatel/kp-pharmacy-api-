@@ -35,6 +35,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/blogs", require("./routes/blogRoutes"));
+app.use("/api/products", require("./routes/productRoutes")); 
 
 console.log({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
